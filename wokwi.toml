@@ -1,0 +1,4 @@
+[wokwi]
+version = 1
+firmware = 'build/Tarefa_10_02_Gabriel_Oliveira.uf2'
+elf = 'Tarefa_10_02_Gabriel_Oliveira.elf'
