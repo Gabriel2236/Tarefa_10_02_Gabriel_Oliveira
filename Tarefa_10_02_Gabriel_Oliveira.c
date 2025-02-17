@@ -33,10 +33,13 @@ ssd1306_t ssd;
 #define JOY_CENTER 2048
 #define DEADZONE 100
 
+#define DISPLAY_WIDTH 128
+#define DISPLAY_HEIGHT 64
+
+int point_x = DISPLAY_WIDTH / 2;  // Posição inicial X do ponto (centro)
+int point_y = DISPLAY_HEIGHT / 2; // Posição inicial Y do ponto (centro)
 
 uint32_t last_time = 0;
-
-
 
 void setup_gpio_interrupt(uint gpio_pin, gpio_irq_callback_t callback) {
     gpio_init(gpio_pin);
@@ -101,12 +104,12 @@ void gpio_irq_handler(uint gpio, uint32_t events) {
 
 void update_pwm_from_joystick() {
     // Leitura do eixo X (LED Vermelho)
-    adc_select_input(0);  // Seleciona ADC0 (GPIO26)
+    adc_select_input(1);  // Seleciona ADC0 (GPIO26)
     uint16_t adc_x = adc_read();
     int16_t pwm_r = (abs(adc_x - JOY_CENTER) > DEADZONE) ? abs((adc_x - JOY_CENTER) * PWM_MAX) / JOY_CENTER : 0;
 
     // Leitura do eixo Y (LED Azul)
-    adc_select_input(1);  // Seleciona ADC1 (GPIO27)
+    adc_select_input(0);  // Seleciona ADC1 (GPIO27)
     uint16_t adc_y = adc_read();
     int16_t pwm_b = (abs(adc_y - JOY_CENTER) > DEADZONE) ? abs((adc_y - JOY_CENTER) * PWM_MAX) / JOY_CENTER : 0;
 
@@ -116,6 +119,33 @@ void update_pwm_from_joystick() {
     }
     // Exibe os valores lidos no terminal
     printf("Joystick X: %d, PWM Vermelho: %d | Joystick Y: %d, PWM Azul: %d\n", adc_x, pwm_r, adc_y, pwm_b);
+}
+
+void update_point_position() {
+    // Leitura do eixo X (Controle do ponto na tela)
+    adc_select_input(1);  // Seleciona ADC0 (GPIO26)
+    uint16_t adc_x = adc_read();
+    int delta_x = (adc_x - JOY_CENTER);
+
+    // Leitura do eixo Y (Controle do ponto na tela)
+    adc_select_input(0);  // Seleciona ADC1 (GPIO27)
+    uint16_t adc_y = adc_read();
+    int delta_y = (adc_y - JOY_CENTER);
+
+    // Atualiza a posição do ponto com base no joystick (invertendo os sinais)
+    point_x += delta_x / 200;  // Ajuste a velocidade de movimento
+    point_y -= delta_y / 200;  // Inverte o movimento do eixo Y
+
+    // Limita a posição do ponto dentro dos limites do display, considerando o tamanho do bloco (8x8)
+    if (point_x < 0) point_x = 0;
+    if (point_x >= DISPLAY_WIDTH - 8) point_x = DISPLAY_WIDTH - 8; // Ajusta para que o ponto não ultrapasse a borda direita
+    if (point_y < 0) point_y = 0;
+    if (point_y >= DISPLAY_HEIGHT - 8) point_y = DISPLAY_HEIGHT - 8; // Ajusta para que o ponto não ultrapasse a borda inferior
+
+    // Desenha o ponto no display
+    ssd1306_fill(&ssd, false); // Limpa o display
+    ssd1306_draw_block(&ssd, point_x, point_y, true); // Desenha o ponto
+    ssd1306_send_data(&ssd); // Atualiza o display
 }
 
 int main()
@@ -170,7 +200,7 @@ int main()
     adc_gpio_init(27); // Configura GPIO27 como ADC1
 
     while (true) {
-
+        update_point_position();
         update_pwm_from_joystick();
         sleep_ms(50); 
 

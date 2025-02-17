@@ -149,8 +149,8 @@
     [ "joystick1:GND", "pico:GND.6", "black", [ "v0" ] ],
     [ "joystick1:SEL", "pico:GP22", "green", [ "v0" ] ],
     [ "rgb1:COM", "pico:GND.4", "black", [ "v0" ] ],
-    [ "pico:GP27", "joystick1:VERT", "green", [ "h0" ] ],
-    [ "pico:GP26", "joystick1:HORZ", "green", [ "h0" ] ]
+    [ "joystick1:VERT", "pico:GP26", "green", [ "v0" ] ],
+    [ "joystick1:HORZ", "pico:GP27", "green", [ "v0" ] ]
   ],
   "dependencies": {}
 }

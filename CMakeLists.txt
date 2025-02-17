@@ -41,8 +41,8 @@ pico_set_program_name(Tarefa_10_02_Gabriel_Oliveira "Tarefa_10_02_Gabriel_Olivei
 pico_set_program_version(Tarefa_10_02_Gabriel_Oliveira "0.1")
 
 # Modify the below lines to enable/disable output over UART/USB
-pico_enable_stdio_uart(Tarefa_10_02_Gabriel_Oliveira 0)
-pico_enable_stdio_usb(Tarefa_10_02_Gabriel_Oliveira 0)
+pico_enable_stdio_uart(Tarefa_10_02_Gabriel_Oliveira 1)
+pico_enable_stdio_usb(Tarefa_10_02_Gabriel_Oliveira 1)
 
 # Add the standard library to the build
 target_link_libraries(Tarefa_10_02_Gabriel_Oliveira
