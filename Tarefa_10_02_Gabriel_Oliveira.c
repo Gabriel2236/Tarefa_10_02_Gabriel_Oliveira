@@ -136,19 +136,7 @@ void update_point_position() {
     ssd1306_fill(&ssd, false); // Limpa o display
 
     if (border_enabled) {
-        int thickness = 2; // Define a espessura da borda (ajuste conforme necessário)
-
-        // Desenha as bordas superior e inferior
-        for (int x = 0; x < DISPLAY_WIDTH; x += 8) {
-            ssd1306_draw_block(&ssd, x, 0, true);                     // Linha superior
-            ssd1306_draw_block(&ssd, x, DISPLAY_HEIGHT - thickness, true); // Linha inferior
-        }
-
-        // Desenha as bordas laterais
-        for (int y = 0; y < DISPLAY_HEIGHT; y += 8) {
-            ssd1306_draw_block(&ssd, 0, y, true);                     // Linha esquerda
-            ssd1306_draw_block(&ssd, DISPLAY_WIDTH - thickness, y, true); // Linha direita
-        }
+        ssd1306_rect(&ssd, 0, 0, 128, 64, true, false);
     }
 
     ssd1306_draw_block(&ssd, point_x, point_y, true); // Desenha o ponto
