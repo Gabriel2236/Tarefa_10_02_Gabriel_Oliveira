@@ -31,7 +31,7 @@ ssd1306_t ssd;
 
 #define PWM_MAX 20000
 #define JOY_CENTER 2048
-#define DEADZONE 100
+#define DEADZONE 500
 
 #define DISPLAY_WIDTH 128
 #define DISPLAY_HEIGHT 64
@@ -56,46 +56,30 @@ void set_pwm_level(uint pin, uint32_t level) {
 
 bool pwm_enabled = true;
 
+bool border_enabled = false; // Variável global para alternar a borda
+
 void gpio_irq_handler(uint gpio, uint32_t events) {
     uint32_t current_time = to_us_since_boot(get_absolute_time());
 
     if (current_time - last_time > 200000) {
         if (gpio == BOTTON_J ) {
-
             gpio_put(led_g, !gpio_get(led_g));
-            if(gpio_get(led_g) == true){
-            printf("LED verde ligado\n");
-            ssd1306_fill(&ssd, false); // Limpa o display
-            ssd1306_draw_string(&ssd, "LED G on", 10, 30); // Escreve no display (posição X=10, Y=30)
-            ssd1306_send_data(&ssd);
 
-            }
-            else{
-            printf("LED verde desligado\n");
-
-            ssd1306_fill(&ssd, false); // Limpa o display
-            ssd1306_draw_string(&ssd, "LED G off", 10, 30); // Escreve no display (posição X=10, Y=30)
-            ssd1306_send_data(&ssd);
-
-            }
+            border_enabled = !border_enabled;
 
 
         } else if (gpio == BOTTON_A) {
-
             pwm_enabled = !pwm_enabled;
-
+            
             if (pwm_enabled) {
-                // Reativa o PWM
                 printf("PWM ativado\n");
                 pwm_set_enabled(pwm_gpio_to_slice_num(led_b), true);
                 pwm_set_enabled(pwm_gpio_to_slice_num(led_r), true);
             } else {
-                // Desativa o PWM
                 printf("PWM desativado\n");
                 pwm_set_enabled(pwm_gpio_to_slice_num(led_b), false);
                 pwm_set_enabled(pwm_gpio_to_slice_num(led_r), false);
             }
-
         }
 
         last_time = current_time;
@@ -132,18 +116,41 @@ void update_point_position() {
     uint16_t adc_y = adc_read();
     int delta_y = (adc_y - JOY_CENTER);
 
-    // Atualiza a posição do ponto com base no joystick (invertendo os sinais)
-    point_x += delta_x / 200;  // Ajuste a velocidade de movimento
-    point_y -= delta_y / 200;  // Inverte o movimento do eixo Y
+    // Se o joystick estiver na posição central (dentro da DEADZONE), reseta o ponto para o meio
+    if (abs(delta_x) < DEADZONE && abs(delta_y) < DEADZONE) {
+        point_x = DISPLAY_WIDTH / 2;
+        point_y = DISPLAY_HEIGHT / 2;
+    } else {
+        // Atualiza a posição do ponto com base no joystick (invertendo os sinais)
+        point_x += delta_x / 200;  // Ajuste a velocidade de movimento
+        point_y -= delta_y / 200;  // Inverte o movimento do eixo Y
+    }
 
-    // Limita a posição do ponto dentro dos limites do display, considerando o tamanho do bloco (8x8)
+    // Limita a posição do ponto dentro dos limites do display
     if (point_x < 0) point_x = 0;
-    if (point_x >= DISPLAY_WIDTH - 8) point_x = DISPLAY_WIDTH - 8; // Ajusta para que o ponto não ultrapasse a borda direita
+    if (point_x >= DISPLAY_WIDTH - 8) point_x = DISPLAY_WIDTH - 8;
     if (point_y < 0) point_y = 0;
-    if (point_y >= DISPLAY_HEIGHT - 8) point_y = DISPLAY_HEIGHT - 8; // Ajusta para que o ponto não ultrapasse a borda inferior
+    if (point_y >= DISPLAY_HEIGHT - 8) point_y = DISPLAY_HEIGHT - 8;
 
     // Desenha o ponto no display
     ssd1306_fill(&ssd, false); // Limpa o display
+
+    if (border_enabled) {
+        int thickness = 2; // Define a espessura da borda (ajuste conforme necessário)
+
+        // Desenha as bordas superior e inferior
+        for (int x = 0; x < DISPLAY_WIDTH; x += 8) {
+            ssd1306_draw_block(&ssd, x, 0, true);                     // Linha superior
+            ssd1306_draw_block(&ssd, x, DISPLAY_HEIGHT - thickness, true); // Linha inferior
+        }
+
+        // Desenha as bordas laterais
+        for (int y = 0; y < DISPLAY_HEIGHT; y += 8) {
+            ssd1306_draw_block(&ssd, 0, y, true);                     // Linha esquerda
+            ssd1306_draw_block(&ssd, DISPLAY_WIDTH - thickness, y, true); // Linha direita
+        }
+    }
+
     ssd1306_draw_block(&ssd, point_x, point_y, true); // Desenha o ponto
     ssd1306_send_data(&ssd); // Atualiza o display
 }
