@@ -56,7 +56,7 @@ void set_pwm_level(uint pin, uint32_t level) {
 
 bool pwm_enabled = true;
 
-bool border_enabled = false; // Variável global para alternar a borda
+int border_style = 0; // Variável global para alternar a borda
 
 void gpio_irq_handler(uint gpio, uint32_t events) {
     uint32_t current_time = to_us_since_boot(get_absolute_time());
@@ -65,7 +65,9 @@ void gpio_irq_handler(uint gpio, uint32_t events) {
         if (gpio == BOTTON_J ) {
             gpio_put(led_g, !gpio_get(led_g));
 
-            border_enabled = !border_enabled;
+            border_style++;
+            if(border_style>2)
+            border_style=0;
 
 
         } else if (gpio == BOTTON_A) {
@@ -118,8 +120,8 @@ void update_point_position() {
 
     // Se o joystick estiver na posição central (dentro da DEADZONE), reseta o ponto para o meio
     if (abs(delta_x) < DEADZONE && abs(delta_y) < DEADZONE) {
-        point_x = DISPLAY_WIDTH / 2;
-        point_y = DISPLAY_HEIGHT / 2;
+        point_x = (DISPLAY_WIDTH / 2)-2;
+        point_y = (DISPLAY_HEIGHT / 2)-3;
     } else {
         // Atualiza a posição do ponto com base no joystick (invertendo os sinais)
         point_x += delta_x / 200;  // Ajuste a velocidade de movimento
@@ -135,8 +137,14 @@ void update_point_position() {
     // Desenha o ponto no display
     ssd1306_fill(&ssd, false); // Limpa o display
 
-    if (border_enabled) {
+    if (border_style==1) {
         ssd1306_rect(&ssd, 0, 0, 128, 64, true, false);
+    }
+    else if(border_style==2){
+        ssd1306_rect(&ssd, 0, 0, 128, 64, true, false);
+        ssd1306_rect(&ssd, 2, 2, 123, 60, true, false);
+
+
     }
 
     ssd1306_draw_block(&ssd, point_x, point_y, true); // Desenha o ponto
