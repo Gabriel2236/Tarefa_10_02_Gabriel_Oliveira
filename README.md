@@ -64,6 +64,3 @@ Este projeto utiliza um **Raspberry Pi Pico** para controlar um **LED RGB** e um
 3. Carregue o firmware no **Raspberry Pi Pico**.
 4. Conecte os componentes corretamente e reinicie o Pico.
 
-## Vídeo
-
-link:
