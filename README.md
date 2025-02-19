@@ -64,3 +64,7 @@ Este projeto utiliza um **Raspberry Pi Pico** para controlar um **LED RGB** e um
 3. Carregue o firmware no **Raspberry Pi Pico**.
 4. Conecte os componentes corretamente e reinicie o Pico.
 
+## Observação
+
+O eixo X na placa BitdogLAB está invertido no quesito esquerda e direita, então na simulação está invertido para funcionar corretamente na placa
+
